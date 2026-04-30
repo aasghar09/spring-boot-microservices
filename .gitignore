@@ -1,0 +1,40 @@
+# ===== MAVEN =====
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# ===== ECLIPSE =====
+.classpath
+.project
+.settings/
+.factorypath
+*.launch
+
+# ===== INTELLIJ (just in case) =====
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# ===== SPRING BOOT =====
+application-local.properties
+application-local.yml
+
+# ===== DOCKER =====
+# Keep Dockerfiles but ignore local overrides
+docker-compose.override.yml
+
+# ===== OS FILES =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== LOGS =====
+*.log
+logs/
+
+# ===== ENVIRONMENT =====
+.env
+.env.local

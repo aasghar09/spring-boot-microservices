@@ -1,0 +1,72 @@
+spring:
+  application:
+    name: gateway-service
+
+  # ===== KEYCLOAK JWT =====
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/school-realm
+          jwk-set-uri: http://localhost:8180/realms/school-realm/protocol/openid-connect/certs
+
+  # ===== GATEWAY ROUTING RULES =====
+  cloud:
+    gateway:
+      # ① Enable Eureka-based load balancing
+      # lb://SERVICE-NAME means "look up this service in Eureka"
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+
+        # ② Route 1 — Person endpoints
+        - id: person-course-service-persons
+          uri: lb://person-course-service
+          predicates:
+            - Path=/api/persons/**
+          filters:
+            - RewritePath=/api/persons/(?<segment>.*), /api/persons/${segment}
+
+        # ③ Route 2 — Course endpoints
+        - id: person-course-service-courses
+          uri: lb://person-course-service
+          predicates:
+            - Path=/api/courses/**
+          filters:
+            - RewritePath=/api/courses/(?<segment>.*), /api/courses/${segment}
+
+        # ④ Route 3 — Enrollment endpoints
+        - id: person-course-service-enrollments
+          uri: lb://person-course-service
+          predicates:
+            - Path=/api/enrollments/**
+          filters:
+            - RewritePath=/api/enrollments/(?<segment>.*), /api/enrollments/${segment}
+
+server:
+  port: 8081
+
+# ===== EUREKA =====
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# ===== SLEUTH + ZIPKIN =====
+spring.sleuth.enabled: true
+spring.sleuth.sampler.probability: 1.0
+spring.zipkin.base-url: http://localhost:9411
+spring.zipkin.sender.type: web
+
+# ===== ACTUATOR =====
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

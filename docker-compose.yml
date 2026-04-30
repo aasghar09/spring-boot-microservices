@@ -1,0 +1,148 @@
+
+
+services:
+
+  # ============================================
+  # 1️⃣ MYSQL
+  # ============================================
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: schooldb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - school-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # 2️⃣ KEYCLOAK — fixed: volume + pinned version
+  # ============================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:20.0.3
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: dev-file
+      KC_HEALTH_ENABLED: "true"
+      # ✅ Force Keycloak to always use this as issuer
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: "8180"
+      KC_HOSTNAME_STRICT: "false"          # allow access from any hostname
+      KC_HOSTNAME_STRICT_HTTPS: "false"    # allow HTTP in dev mode
+    command: >
+      start-dev
+      --import-realm    
+    ports:
+      - "8180:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak/school-realm.json:/opt/keycloak/data/import/school-realm.json
+    networks:
+      - school-network
+    # ✅ No healthcheck needed — service_started used in depends_on
+
+  # ============================================
+  # 3️⃣ ZIPKIN — fixed: pinned to Java 8 compatible version
+  # ============================================
+  zipkin:
+    image: openzipkin/zipkin:2.24.3    # ✅ pinned, stable, Java 8 safe
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - school-network
+
+  # ============================================
+  # 4️⃣ DISCOVERY SERVICE
+  # ============================================
+  discovery-service:
+    build:
+      context: ./discovery-service
+      dockerfile: Dockerfile
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      - school-network
+    depends_on:
+      - zipkin
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+
+  # ============================================
+  # 5️⃣ PERSON-COURSE-SERVICE
+  # ============================================
+  person-course-service:
+    build:
+      context: ./person-course-service
+      dockerfile: Dockerfile
+    container_name: person-course-service
+    ports:
+      - "8082:8082"
+    networks:
+      - school-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/schooldb
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8180/realms/school-realm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/realms/school-realm/protocol/openid-connect/certs
+      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411
+
+  # ============================================
+  # 6️⃣ GATEWAY SERVICE
+  # ============================================
+  gateway-service:
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    ports:
+      - "8081:8081"
+    networks:
+      - school-network
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8180/realms/school-realm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/realms/school-realm/protocol/openid-connect/certs
+      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411
+
+# ============================================
+# VOLUMES
+# ============================================
+volumes:
+  mysql_data:
+  keycloak_data:    # ✅ added for Keycloak persistence
+
+# ============================================
+# NETWORK
+# ============================================
+networks:
+  school-network:
+    driver: bridge
