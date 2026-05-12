@@ -77,7 +77,8 @@ services:
     depends_on:
       - zipkin
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      #- SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_ENABLED=false
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 15s
@@ -101,9 +102,12 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+      config-server:
+        condition: service_healthy    # ← ADD THIS       
       keycloak:
         condition: service_started
     environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888  # ← ADD THIS
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/schooldb
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
@@ -127,11 +131,38 @@ services:
     depends_on:
       discovery-service:
         condition: service_healthy
+      config-server:
+        condition: service_healthy    # ← ADD THIS      
     environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888  # ← ADD THIS
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8180/realms/school-realm
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/realms/school-realm/protocol/openid-connect/certs
       - SPRING_ZIPKIN_BASEURL=http://zipkin:9411
+
+  # ============================================
+  # CONFIG SERVER — starts after discovery
+  # ============================================
+  config-server:
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - school-network
+    depends_on:
+      - zipkin
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/aasghar09/spring-boot-microservices-config
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=main
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
 
 # ============================================
 # VOLUMES

@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: person-course-service
+  cloud:
+    config:
+      uri: http://config-server:8888
+      fail-fast: true
+      import-check:
+        enabled: false
+      retry:
+        max-attempts: 10          # try 10 times before giving up
+        initial-interval: 3000   # wait 3 seconds between attempts
+        max-interval: 10000      # maximum 10 seconds between attempts
+        multiplier: 1.5          # increase wait time gradually
