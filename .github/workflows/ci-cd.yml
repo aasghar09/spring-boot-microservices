@@ -85,7 +85,7 @@ jobs:
       # retention-days: 1 = auto-deleted after 1 day (saves storage)
       # ----------------------------------------------------------
       - name: Upload built JARs as pipeline artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: service-jars
           path: |
@@ -126,7 +126,7 @@ jobs:
       # This is the other end of the conveyor belt from Step 5 above
       # ----------------------------------------------------------
       - name: Download built JARs from Job 1
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: service-jars
 
