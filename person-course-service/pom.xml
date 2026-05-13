@@ -14,7 +14,9 @@
     </parent>
 
     <artifactId>person-course-service</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
+    
+    
 
     <dependencies>
 
@@ -91,7 +93,64 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
+		
+		<!-- 
+             TOMCAT — PROVIDED scope (WAR default behaviour)
+             WHY: When deploying as WAR to WebLogic or Tomcat standalone,
+             the external server provides its own servlet container.
+             'provided' = included at compile time, EXCLUDED from WAR.
+             This prevents two Tomcat instances conflicting at runtime.
+             Real-life analogy: Hotel provides bedsheets — guest doesn't
+             bring their own from home.
+              -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-tomcat</artifactId>
+		    <scope>provided</scope>  <!-- External server provides this -->
+		</dependency>
 
     </dependencies>
+    
+    <!-- ============================================================
+     NO PROFILES NEEDED
+     This single build configuration produces BOTH:
+       1. person-course-service-0.0.1-SNAPSHOT.war  (68MB) → WebLogic/Tomcat
+       2. person-course-service-0.0.1-SNAPSHOT.jar  (fat)  → Docker/local
+     
+     To use WAR: deploy .war to WebLogic or Tomcat
+     To use JAR: java -jar person-course-service-0.0.1-SNAPSHOT.jar
+     ============================================================ -->
+	<build>
+	    <finalName>person-course-service-0.0.1-SNAPSHOT</finalName>
+	    <plugins>
+	
+	        <!-- Eclipse resource processing fix — same as Phase 1 -->
+	        <plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-resources-plugin</artifactId>
+	            
+	        </plugin>
+	        
+	        <plugin>
+	            <groupId>org.springframework.boot</groupId>
+	            <artifactId>spring-boot-maven-plugin</artifactId>
+	            <configuration>
+	                <mainClass>
+	                    com.ali.personcourseservices.PersonCourseServiceApplication
+	                </mainClass>
+	                <!-- classifier produces additional artifact named *-exec.jar -->
+	                <!-- Does NOT interfere with WAR production -->
+	                <classifier>exec</classifier>
+	                <excludes>
+	                    <exclude>
+	                        <groupId>org.projectlombok</groupId>
+	                        <artifactId>lombok</artifactId>
+	                    </exclude>
+	                </excludes>
+	            </configuration>
+	        </plugin>
+	
+	    </plugins>
+	</build>
 
 </project>

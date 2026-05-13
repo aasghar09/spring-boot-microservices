@@ -64,7 +64,7 @@ jobs:
       # compile error — not a test failure
       # ----------------------------------------------------------
       - name: Build all JARs (mvn clean package)
-        run: mvn clean package -DskipTests
+        run: mvn clean package -DskipTests -Dpackaging=jar
         working-directory: .
 
       # ----------------------------------------------------------
@@ -92,7 +92,7 @@ jobs:
             discovery-service/target/*.jar
             config-server/target/*.jar
             gateway-service/target/*.jar
-            person-course-service/target/*.jar
+            person-course-service/target/*-exec.war
           retention-days: 1
 
 
