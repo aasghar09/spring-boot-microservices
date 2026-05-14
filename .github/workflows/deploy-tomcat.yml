@@ -1,0 +1,201 @@
+name: Pipeline 2 — Tomcat Local Deployment
+
+# ─────────────────────────────────────────
+# Manual trigger only
+# Mirrors how ops teams deliberately promote
+# artifacts to app servers
+# ─────────────────────────────────────────
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: 'Pipeline 1 Run ID (find in Actions tab URL)'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'local-tomcat'
+        type: choice
+        options:
+          - local-tomcat
+
+jobs:
+
+  # ─────────────────────────────────────────
+  # JOB 1 — Download WAR from Pipeline 1
+  # ─────────────────────────────────────────
+  prepare-artifact:
+    name: Prepare WAR for Tomcat Deployment
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Step 1 — Download the 'service-jars' artifact from Pipeline 1
+      # CRITICAL: name must match EXACTLY what Pipeline 1 uploads
+      # Pipeline 1 uploads artifact named: 'service-jars'
+      - name: Download service-jars from Pipeline 1
+        uses: actions/download-artifact@v4
+        with:
+          name: service-jars                              # ← exact match to ci-cd.yml line 90
+          run-id: ${{ github.event.inputs.artifact_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./downloaded-artifacts
+
+      # Step 2 — Show everything downloaded (great for debugging)
+      - name: List downloaded artifact contents
+        run: |
+          echo "📦 Everything inside service-jars artifact:"
+          find ./downloaded-artifacts -type f | sort
+          echo ""
+          echo "📏 Sizes:"
+          ls -lh ./downloaded-artifacts/
+
+      # Step 3 — Extract only the exec.war we need
+      # Pipeline 1 bundles ALL service JARs + WAR together
+      # We only want person-course-service*-exec.war
+      - name: Isolate person-course-service exec.war
+        run: |
+          # Find the exec.war — could be in root or subdirectory
+          WAR_FILE=$(find ./downloaded-artifacts -name "*-exec.war" | head -1)
+
+          if [ -z "$WAR_FILE" ]; then
+            echo "❌ ERROR: No exec.war found!"
+            echo "Files present:"
+            find ./downloaded-artifacts -type f
+            exit 1
+          fi
+
+          echo "✅ Found WAR: $WAR_FILE"
+          echo "📏 Size: $(du -sh "$WAR_FILE" | cut -f1)"
+
+          # Copy to clean working directory
+          mkdir -p ./deployment
+          cp "$WAR_FILE" ./deployment/
+
+      # Step 4 — Rename to clean context path name
+      # Why? Tomcat uses filename as URL context path
+      # person-course-service-0.0.1-SNAPSHOT-exec.war
+      #   → URL: /person-course-service-0.0.1-SNAPSHOT-exec/  ← ugly
+      # person-course-service.war
+      #   → URL: /person-course-service/                      ← clean
+      - name: Rename WAR for clean Tomcat context path
+        run: |
+          cd ./deployment
+          ORIGINAL=$(ls *-exec.war | head -1)
+          cp "$ORIGINAL" person-course-service.war
+          echo "✅ Renamed: $ORIGINAL → person-course-service.war"
+          echo ""
+          echo "🌐 After deployment app will be at:"
+          echo "   http://localhost:8080/person-course-service/"
+          echo "   http://localhost:8080/person-course-service/actuator/health"
+
+      # Step 5 — Upload renamed WAR as Pipeline 2's own artifact
+      # This is what YOU download from GitHub and drop into Tomcat
+      # retention-days: 7 = available for one week
+      - name: Upload deployment-ready WAR as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-ready-war
+          path: ./deployment/person-course-service.war
+          retention-days: 7
+
+      # Step 6 — Print clear deployment instructions in the logs
+      - name: Print deployment instructions
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📋 DEPLOYMENT INSTRUCTIONS — READ CAREFULLY"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "1. Go to this pipeline run on GitHub Actions"
+          echo "2. Scroll to bottom → Artifacts section"
+          echo "3. Download 'deployment-ready-war'"
+          echo "4. Extract the ZIP file"
+          echo "5. Copy person-course-service.war to:"
+          echo ""
+          echo "   C:\Ali\apache-tomcat-9.0.118-windows-x64"
+          echo "   \apache-tomcat-9.0.118\webapps\"
+          echo ""
+          echo "6. Tomcat auto-deploys within seconds"
+          echo "7. Watch progress at:"
+          echo "   http://localhost:8080/manager/html"
+          echo "8. Verify app is live at:"
+          echo "   http://localhost:8080/person-course-service/actuator/health"
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # ─────────────────────────────────────────
+  # JOB 2 — Email Notification
+  # Always runs regardless of Job 1 result
+  # ─────────────────────────────────────────
+  notify:
+    name: Email Notification
+    runs-on: ubuntu-latest
+    needs: prepare-artifact
+    if: always()
+
+    steps:
+
+      - name: Send success email
+        if: needs.prepare-artifact.result == 'success'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: ${{ secrets.MAIL_TO }}
+          from: "GitHub Actions <${{ secrets.MAIL_USERNAME }}>"
+          subject: "✅ Pipeline 2 — WAR Ready for Tomcat Deployment"
+          body: |
+            Pipeline 2 completed successfully!
+            ════════════════════════════════════════
+            Triggered by : ${{ github.actor }}
+            Environment  : ${{ github.event.inputs.environment }}
+            Pipeline 1 ID: ${{ github.event.inputs.artifact_run_id }}
+            ════════════════════════════════════════
+
+            DEPLOYMENT STEPS:
+            1. Open this run on GitHub:
+               ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            2. Scroll to Artifacts → Download 'deployment-ready-war'
+
+            3. Extract ZIP → get person-course-service.war
+
+            4. Copy WAR to Tomcat webapps folder:
+               C:\Ali\apache-tomcat-9.0.118-windows-x64\apache-tomcat-9.0.118\webapps\
+
+            5. Monitor deployment at:
+               http://localhost:8080/manager/html
+
+            6. Verify app health at:
+               http://localhost:8080/person-course-service/actuator/health
+
+            ════════════════════════════════════════
+            WAR artifact retained for 7 days.
+
+      - name: Send failure email
+        if: needs.prepare-artifact.result == 'failure'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: ${{ secrets.MAIL_TO }}
+          from: "GitHub Actions <${{ secrets.MAIL_USERNAME }}>"
+          subject: "❌ Pipeline 2 — WAR Preparation Failed"
+          body: |
+            Pipeline 2 failed during WAR preparation.
+            ════════════════════════════════════════
+            Triggered by : ${{ github.actor }}
+            Pipeline 1 ID: ${{ github.event.inputs.artifact_run_id }}
+
+            Check logs at:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            ════════════════════════════════════════
+            Most likely cause: Wrong Pipeline 1 Run ID entered,
+            or Pipeline 1 artifact has expired (retention: 1 day).

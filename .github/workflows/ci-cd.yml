@@ -93,7 +93,7 @@ jobs:
             config-server/target/*.jar
             gateway-service/target/*.jar
             person-course-service/target/*-exec.war
-          retention-days: 1
+          retention-days: 7
 
 
   # ==============================================================
@@ -146,7 +146,7 @@ jobs:
           mv discovery-service*.jar      discovery-service/target/      2>/dev/null || true
           mv config-server*.jar          config-server/target/           2>/dev/null || true
           mv gateway-service*.jar        gateway-service/target/         2>/dev/null || true
-          mv person-course-service*.jar  person-course-service/target/   2>/dev/null || true
+          mv person-course-service*.war  person-course-service/target/   2>/dev/null || true
 
       # ----------------------------------------------------------
       # STEP 4: Log in to GitHub Container Registry (GHCR)
