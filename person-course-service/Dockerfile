@@ -4,7 +4,7 @@ LABEL maintainer="ali@school.com"
 
 WORKDIR /app
 
-COPY target/person-course-service-0.0.1-SNAPSHOT.jar app.jar
+COPY target/person-course-service-0.0.1-SNAPSHOT-exec.war app.jar
 
 EXPOSE 8082
 
