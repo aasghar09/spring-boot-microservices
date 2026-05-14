@@ -113,8 +113,8 @@ jobs:
           echo "4. Extract the ZIP file"
           echo "5. Copy person-course-service.war to:"
           echo ""
-          echo "   C:\Ali\apache-tomcat-9.0.118-windows-x64"
-          echo "   \apache-tomcat-9.0.118\webapps\"
+          echo "   C:/Ali/apache-tomcat-9.0.118-windows-x64"
+          echo "   /apache-tomcat-9.0.118/webapps/"
           echo ""
           echo "6. Tomcat auto-deploys within seconds"
           echo "7. Watch progress at:"
@@ -165,7 +165,7 @@ jobs:
             3. Extract ZIP → get person-course-service.war
 
             4. Copy WAR to Tomcat webapps folder:
-               C:\Ali\apache-tomcat-9.0.118-windows-x64\apache-tomcat-9.0.118\webapps\
+               C:/Ali/apache-tomcat-9.0.118-windows-x64/apache-tomcat-9.0.118/webapps/
 
             5. Monitor deployment at:
                http://localhost:8080/manager/html
