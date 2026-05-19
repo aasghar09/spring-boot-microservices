@@ -12,3 +12,25 @@ spring:
         initial-interval: 3000   # wait 3 seconds between attempts
         max-interval: 10000      # maximum 10 seconds between attempts
         multiplier: 1.5          # increase wait time gradually
+
+---
+# This section ONLY applies when profile = local
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    config:
+      enabled: false
+      fail-fast: false
+
+---
+# This section ONLY applies when profile = weblogic
+spring:
+  config:
+    activate:
+      on-profile: weblogic
+  cloud:
+    config:
+      enabled: false
+      fail-fast: false        
