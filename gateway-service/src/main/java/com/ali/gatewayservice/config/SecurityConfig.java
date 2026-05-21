@@ -26,6 +26,13 @@ public class SecurityConfig {
 
                 // Actuator endpoints — public
                 .pathMatchers("/actuator/**").permitAll()
+                .pathMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/v3/api-docs",
+                        "/webjars/**"
+                    ).permitAll()
 
                 // All API routes — must be authenticated
                 // Fine-grained role control handled downstream

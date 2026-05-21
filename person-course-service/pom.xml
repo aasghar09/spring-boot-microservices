@@ -114,6 +114,13 @@
 		    <artifactId>tomcat-embed-el</artifactId>
 		    <scope>provided</scope>
 		</dependency>
+		
+		<!-- Swagger UI + OpenAPI 3.0 documentation -->
+		<dependency>
+		    <groupId>org.springdoc</groupId>
+		    <artifactId>springdoc-openapi-ui</artifactId>
+		    <version>1.7.0</version>
+		</dependency>
 
     </dependencies>
     

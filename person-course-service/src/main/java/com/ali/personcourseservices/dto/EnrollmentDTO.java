@@ -1,5 +1,6 @@
 package com.ali.personcourseservices.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,24 +11,26 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Data Transfer Object representing a Course Enrollment")
 public class EnrollmentDTO {
 
-    // Exposed on RESPONSE only
+    @Schema(description = "Unique identifier of the enrollment", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
-    // ① On REQUEST: caller sends personId + courseId
-    // On RESPONSE: we send back full person + course details
-    @NotNull(message = "Person ID is required")
+    @NotNull
+    @Schema(description = "ID of the person being enrolled", example = "1")
     private Long personId;
 
-    @NotNull(message = "Course ID is required")
+    @NotNull
+    @Schema(description = "ID of the course to enroll into", example = "2")
     private Long courseId;
 
-    // ② Auto-set by @PrePersist — not required on REQUEST
+    @Schema(description = "Date of enrollment — auto-set by system", example = "2024-01-15", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDate enrollmentDate;
 
-    // ③ Convenience fields for RESPONSE readability
-    // Caller sees name + course name instead of raw IDs
+    @Schema(description = "Full name of the enrolled person — enriched response field", example = "John Doe", accessMode = Schema.AccessMode.READ_ONLY)
     private String personFullName;
+
+    @Schema(description = "Name of the course — enriched response field", example = "Introduction to Java", accessMode = Schema.AccessMode.READ_ONLY)
     private String courseName;
 }

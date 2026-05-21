@@ -2,6 +2,10 @@ package com.ali.personcourseservices.controller;
 
 import com.ali.personcourseservices.dto.CourseDTO;
 import com.ali.personcourseservices.service.CourseService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +19,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/courses")
 @Validated
+@Tag(name = "Course Management", description = "APIs for managing courses in the school system")
 public class CourseController {
 
     @Autowired
     private CourseService courseService;
 
+    @Operation(summary = "Get all courses", description = "Returns a list of all courses. Requires ADMIN or USER role.")
     // GET /api/courses
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
@@ -28,6 +34,7 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
+    @Operation(summary = "Get course by ID", description = "Returns a single course by its ID. Requires ADMIN or USER role.")
     // GET /api/courses/{id}
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
@@ -36,6 +43,7 @@ public class CourseController {
         return ResponseEntity.ok(course);
     }
 
+    @Operation(summary = "Search courses by name", description = "Returns courses matching the name keyword. Requires ADMIN or USER role.")
     // GET /api/courses/search?name=java
     // ① @RequestParam — reads from query string ?name=xxx
     @GetMapping("/search")
@@ -46,6 +54,7 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
+    @Operation(summary = "Get courses by instructor", description = "Returns all courses taught by a specific instructor. Requires ADMIN or USER role.")
     // GET /api/courses/instructor/{instructorName}
     @GetMapping("/instructor/{instructorName}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
@@ -56,6 +65,7 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
+    @Operation(summary = "Create a new course", description = "Creates a new course record. Requires ADMIN role.")
     // POST /api/courses
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -65,6 +75,7 @@ public class CourseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @Operation(summary = "Update a course", description = "Updates an existing course by ID. Requires ADMIN role.")
     // PUT /api/courses/{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -75,6 +86,7 @@ public class CourseController {
         return ResponseEntity.ok(updated);
     }
 
+    @Operation(summary = "Delete a course", description = "Deletes a course by ID. Requires ADMIN role.")
     // DELETE /api/courses/{id}
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

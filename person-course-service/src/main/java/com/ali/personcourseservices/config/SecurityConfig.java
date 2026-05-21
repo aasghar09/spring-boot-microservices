@@ -46,19 +46,15 @@ public class SecurityConfig {
 
             // ⑤ Define which endpoints need authentication
             .authorizeHttpRequests(auth -> auth
-
-                // Actuator health endpoint — always public
-                // Eureka and Docker health checks need this
-                .antMatchers("/actuator/health").permitAll()
-                .antMatchers("/actuator/info").permitAll()
-
-                // All API endpoints require authentication
-                // Fine-grained control handled by @PreAuthorize
-                .antMatchers("/api/**").authenticated()
-
-                // Any other request also requires authentication
-                .anyRequest().authenticated()
-            )
+            	    .antMatchers("/actuator/health").permitAll()
+            	    .antMatchers(
+            	        "/v3/api-docs/**",
+            	        "/v3/api-docs.yaml",
+            	        "/swagger-ui/**",
+            	        "/swagger-ui.html"
+            	    ).permitAll()
+            	    .antMatchers("/api/**").authenticated()
+            	    .anyRequest().authenticated())
 
             // ⑥ Configure as OAuth2 Resource Server with JWT
             // This tells Spring: "validate incoming Bearer tokens"
