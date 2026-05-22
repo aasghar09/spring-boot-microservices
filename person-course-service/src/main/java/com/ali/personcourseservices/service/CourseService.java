@@ -5,6 +5,8 @@ import com.ali.personcourseservices.entity.Course;
 import com.ali.personcourseservices.exception.CourseNotFoundException;
 import com.ali.personcourseservices.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +20,9 @@ public class CourseService {
     private CourseRepository courseRepository;
 
     @Transactional(readOnly = true)
-    public List<CourseDTO> getAllCourses() {
-        return courseRepository.findAll()
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<CourseDTO> getAllCourses(Pageable pageable) {
+        return courseRepository.findAll(pageable)
+            .map(this::convertToDTO);
     }
 
     @Transactional(readOnly = true)
