@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,13 +28,13 @@ public class EnrollmentController {
     @Autowired
     private EnrollmentService enrollmentService;
 
-    @Operation(summary = "Get all enrollments", description = "Returns a list of all enrollments. Requires ADMIN role.")
+    @Operation(summary = "Get all enrollments", description = "Returns a paginated list of all enrollments. Requires ADMIN role.")
     // GET /api/enrollments
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<EnrollmentDTO>> getAllEnrollments() {
-        List<EnrollmentDTO> enrollments = enrollmentService.getAllEnrollments();
-        return ResponseEntity.ok(enrollments);
+    public ResponseEntity<Page<EnrollmentDTO>> getAllEnrollments(
+            @PageableDefault(size = 10, sort = "enrollmentDate") Pageable pageable) {
+        return ResponseEntity.ok(enrollmentService.getAllEnrollments(pageable));
     }
 
     

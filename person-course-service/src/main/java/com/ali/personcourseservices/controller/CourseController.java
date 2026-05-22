@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,13 +28,13 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
-    @Operation(summary = "Get all courses", description = "Returns a list of all courses. Requires ADMIN or USER role.")
+    @Operation(summary = "Get all courses", description = "Returns a paginated list of all courses. Requires ADMIN or USER role.")
     // GET /api/courses
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<List<CourseDTO>> getAllCourses() {
-        List<CourseDTO> courses = courseService.getAllCourses();
-        return ResponseEntity.ok(courses);
+    public ResponseEntity<Page<CourseDTO>> getAllCourses(
+            @PageableDefault(size = 10, sort = "courseName") Pageable pageable) {
+        return ResponseEntity.ok(courseService.getAllCourses(pageable));
     }
 
     @Operation(summary = "Get course by ID", description = "Returns a single course by its ID. Requires ADMIN or USER role.")
