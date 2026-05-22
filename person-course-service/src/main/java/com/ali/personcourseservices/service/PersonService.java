@@ -7,6 +7,8 @@ import com.ali.personcourseservices.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,13 +27,11 @@ public class PersonService {
 	private PersonRepository personRepository;
     // ③ @Transactional(readOnly=true) — optimizes read operations
     // tells DB: "no writes happening, optimize accordingly"
-    @Transactional(readOnly = true)
-    public List<PersonDTO> getAllPersons() {
-        return personRepository.findAll()
-                .stream()
-                .map(this::convertToDTO)  // ④ method reference for mapping
-                .collect(Collectors.toList());
-    }
+   @Transactional(readOnly = true)
+   public Page<PersonDTO> getAllPersons(Pageable pageable) {
+       return personRepository.findAll(pageable)
+           .map(this::convertToDTO);
+   }
 
     @Transactional(readOnly = true)
     public PersonDTO getPersonById(Long id) {
