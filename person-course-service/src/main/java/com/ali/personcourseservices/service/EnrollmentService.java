@@ -1,9 +1,11 @@
 package com.ali.personcourseservices.service;
 
+
 import com.ali.personcourseservices.dto.EnrollmentDTO;
 import com.ali.personcourseservices.entity.Course;
 import com.ali.personcourseservices.entity.Enrollment;
 import com.ali.personcourseservices.entity.Person;
+import com.ali.personcourseservices.event.EnrollmentEvent;
 import com.ali.personcourseservices.exception.CourseNotFoundException;
 import com.ali.personcourseservices.exception.EnrollmentNotFoundException;
 import com.ali.personcourseservices.exception.PersonNotFoundException;
@@ -13,6 +15,7 @@ import com.ali.personcourseservices.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,11 @@ public class EnrollmentService {
 
     @Autowired
     private CourseRepository courseRepository;
+    
+    @Autowired
+    private KafkaTemplate<String, EnrollmentEvent> kafkaTemplate;
+
+    private static final String TOPIC = "enrollment-events";
 
     @Transactional(readOnly = true)
     public Page<EnrollmentDTO> getAllEnrollments(Pageable pageable) {
@@ -92,6 +100,19 @@ public class EnrollmentService {
         enrollment.setCourse(course);
 
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+        
+        EnrollmentEvent event = new EnrollmentEvent(
+        		savedEnrollment.getId(),
+        		savedEnrollment.getPerson().getId(),
+        		savedEnrollment.getPerson().getFirstName() + " " + savedEnrollment.getPerson().getLastName(),
+        		savedEnrollment.getPerson().getEmail(),
+        		savedEnrollment.getCourse().getId(),
+        		savedEnrollment.getCourse().getCourseName(),
+        		savedEnrollment.getEnrollmentDate()
+            );
+            kafkaTemplate.send(TOPIC, String.valueOf(savedEnrollment.getId()), event);
+        
+        
         return convertToDTO(savedEnrollment);
     }
 
