@@ -94,6 +94,12 @@
 		    <artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
 		
+		<!-- Kafka -->
+		<dependency>
+		    <groupId>org.springframework.kafka</groupId>
+		    <artifactId>spring-kafka</artifactId>
+		</dependency>
+		
 		<!-- 
              TOMCAT — PROVIDED scope (WAR default behaviour)
              WHY: When deploying as WAR to WebLogic or Tomcat standalone,
