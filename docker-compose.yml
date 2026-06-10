@@ -22,6 +22,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - school-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # ============================================
   # 2️⃣ KEYCLOAK — fixed: volume + pinned version
@@ -172,6 +185,9 @@ services:
       - SPRING_ZIPKIN_BASEURL=http://zipkin:9411
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+      - JASYPT_ENCRYPTOR_PASSWORD=${JASYPT_KEY}
 
   # ============================================
   # 6️⃣ GATEWAY SERVICE
@@ -189,7 +205,9 @@ services:
       discovery-service:
         condition: service_healthy
       config-server:
-        condition: service_healthy    # ← ADD THIS      
+        condition: service_healthy    # ← ADD THIS
+      redis:
+        condition: service_healthy      
     environment:
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888  # ← ADD THIS
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/

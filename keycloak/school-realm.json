@@ -30,8 +30,14 @@
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
       "secret": "school-client-secret",
-      "redirectUris": ["http://localhost:8081/*"],
-      "webOrigins": ["http://localhost:8081"],
+      "redirectUris": [
+  	"http://localhost:8081/*",
+  	"http://localhost:4200/*"
+      ],
+      "webOrigins": [
+  	"http://localhost:8081",
+  	"http://localhost:4200"
+      ],
       "bearerOnly": false,
       "consentRequired": false,
       "standardFlowEnabled": true,
@@ -42,7 +48,17 @@
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "fullScopeAllowed": true
-    }
+    },
+    {
+      "clientId": "school-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"],
+      "protocol": "openid-connect"
+   }
   ],
   "users": [
     {
