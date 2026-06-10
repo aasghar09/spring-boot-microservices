@@ -37,5 +37,8 @@ public class PersonDTO {
     @Schema(description = "Contact phone number", example = "+92-300-1234567")
     private String phone;
     
+    @Schema(description = "Keylcoak id to bind it with keycloak")
+    private String keycloakId;
+    
     
 }

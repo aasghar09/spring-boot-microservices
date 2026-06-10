@@ -1,0 +1,225 @@
+<div class="persons-container">
+
+  <!-- ── PAGE HEADER ── -->
+  <div class="page-header">
+    <h2>Persons</h2>
+
+    <!-- Add Person button — visible to ADMIN only -->
+    <button
+      *ngIf="isAdmin()"
+      (click)="toggleCreateForm()"
+      class="btn-primary">
+      {{ showCreateForm ? '✕ Cancel' : '+ Add Person' }}
+    </button>
+  </div>
+
+  <!-- ── SEARCH BAR ── -->
+  <!-- Always visible — both ADMIN and USER can search -->
+  <div class="search-bar">
+
+    <input
+      type="text"
+      [(ngModel)]="searchKeyword"
+      placeholder="Search by name or email..."
+      class="search-input"
+      (keyup.enter)="searchPersons()" />
+      <!-- keyup.enter means: call searchPersons() when user presses Enter key -->
+      <!-- same as pressing the Search button — convenience shortcut -->
+
+    <button (click)="searchPersons()" class="btn-primary">
+      🔍 Search
+    </button>
+
+    <!-- Clear button — only visible when in search mode -->
+    <button
+      *ngIf="isSearchMode"
+      (click)="clearSearch()"
+      class="btn-secondary">
+      ✕ Clear
+    </button>
+
+  </div>
+
+  <!-- Search mode indicator — tells user they are seeing filtered results -->
+  <div class="search-indicator" *ngIf="isSearchMode">
+    Showing results for: <strong>{{ searchKeyword }}</strong>
+    &nbsp;({{ totalElements }} found)
+  </div>
+
+  <!-- ── CREATE PERSON FORM — ADMIN only ── -->
+  <div class="create-form" *ngIf="isAdmin() && showCreateForm">
+    <h3>New Person</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>First Name *</label>
+        <input type="text" [(ngModel)]="newPerson.firstName" placeholder="First Name" />
+      </div>
+      <div class="form-group">
+        <label>Last Name *</label>
+        <input type="text" [(ngModel)]="newPerson.lastName" placeholder="Last Name" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="newPerson.email" placeholder="Email" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" [(ngModel)]="newPerson.phone" placeholder="Phone" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Keycloak ID (optional)</label>
+        <input type="text" [(ngModel)]="newPerson.keycloakId" placeholder="Paste Keycloak sub UUID" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button (click)="toggleCreateForm()" class="btn-secondary">Cancel</button>
+      <button (click)="createPerson()"     class="btn-primary">Save Person</button>
+    </div>
+  </div>
+
+  <!-- ── EDIT PERSON FORM — ADMIN only, opens when Edit button clicked ── -->
+  <div class="edit-form" *ngIf="isAdmin() && showEditForm">
+    <h3>Edit Person</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>First Name *</label>
+        <!-- [(ngModel)] pre-populated from openEditForm() -->
+        <input type="text" [(ngModel)]="editPerson.firstName" placeholder="First Name" />
+      </div>
+      <div class="form-group">
+        <label>Last Name *</label>
+        <input type="text" [(ngModel)]="editPerson.lastName" placeholder="Last Name" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="editPerson.email" placeholder="Email" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" [(ngModel)]="editPerson.phone" placeholder="Phone" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Keycloak ID (optional)</label>
+        <input type="text" [(ngModel)]="editPerson.keycloakId" placeholder="Paste Keycloak sub UUID" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button (click)="closeEditForm()" class="btn-secondary">Cancel</button>
+      <button (click)="updatePerson()"  class="btn-primary">Update Person</button>
+    </div>
+  </div>
+
+  <!-- ── SUCCESS MESSAGE ── -->
+  <div class="alert-success" *ngIf="successMessage">
+    ✅ {{ successMessage }}
+  </div>
+
+  <!-- ── ERROR MESSAGE ── -->
+  <div class="alert-error" *ngIf="error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- ── PERSONS TABLE ── -->
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th *ngIf="isAdmin()">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- Loading row -->
+      <tr *ngIf="loading">
+        <td colspan="6" class="loading-cell">Loading persons...</td>
+      </tr>
+
+      <!-- Empty state -->
+      <tr *ngIf="!loading && persons.length === 0">
+        <td colspan="6" class="empty-cell">
+          <!-- different message for search vs normal mode -->
+          {{ isSearchMode ? 'No persons found matching your search.' : 'No persons found.' }}
+        </td>
+      </tr>
+
+      <!-- Data rows — one <tr> per person -->
+      <tr *ngFor="let person of persons">
+        <td>{{ person.id }}</td>
+        <td>{{ person.firstName }}</td>
+        <td>{{ person.lastName }}</td>
+        <td>{{ person.email }}</td>
+        <td>{{ person.phone }}</td>
+
+        <!-- Actions cell — ADMIN only -->
+        <td *ngIf="isAdmin()">
+          <div class="action-buttons">
+
+            <!-- Edit button — opens edit form pre-populated with this row's data -->
+            <button
+              (click)="openEditForm(person)"
+              class="btn-edit">
+              ✏️ Edit
+            </button>
+
+            <!-- Delete button -->
+            <button
+              (click)="deletePerson(person.id)"
+              class="btn-danger">
+              🗑️ Delete
+            </button>
+
+          </div>
+        </td>
+
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- ── PAGINATION ── -->
+  <div class="pagination" *ngIf="!loading && totalPages > 1">
+    <button
+      (click)="prevPage()"
+      [disabled]="currentPage === 0"
+      class="btn-secondary">
+      ◄ Prev
+    </button>
+
+    <span class="page-info">
+      Page {{ currentPage + 1 }} of {{ totalPages }}
+    </span>
+
+    <button
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages - 1"
+      class="btn-secondary">
+      Next ►
+    </button>
+  </div>
+
+  <!-- ── RECORD COUNT ── -->
+  <div class="record-count" *ngIf="!loading && totalElements > 0">
+    Showing {{ persons.length }} of {{ totalElements }} persons
+  </div>
+
+</div>
