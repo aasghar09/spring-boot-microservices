@@ -1,0 +1,34 @@
+<div class="layout">
+
+  <nav class="topbar">
+    <span class="app-title">🎓 School Management System</span>
+    <div class="user-info">
+      <span>{{ username }}</span>
+      <span class="role-badge">{{ isAdmin() ? 'ADMIN' : 'USER' }}</span>
+      <button (click)="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="body">
+    <aside class="sidebar">
+      <ul>
+        <li><a routerLink="/dashboard" routerLinkActive="active">🏠 Dashboard</a></li>
+        <li><a routerLink="/persons" routerLinkActive="active">👤 Persons</a></li>
+        <li><a routerLink="/courses" routerLinkActive="active">📚 Courses</a></li>
+        <li><a routerLink="/enrollments" routerLinkActive="active">📋 Enrollments</a></li>
+        <li *ngIf="isAdmin()">
+          <a href="http://localhost:8180/admin" target="_blank">⚙️ User Management ↗</a>
+        </li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <footer class="footer">
+    © 2026 School Management System · v1.0.0
+  </footer>
+
+</div>

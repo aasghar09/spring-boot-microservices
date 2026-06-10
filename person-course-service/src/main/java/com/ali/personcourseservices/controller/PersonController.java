@@ -34,6 +34,21 @@ public class PersonController {
     @Autowired
     private PersonService personService;
 
+    
+	 // GET /api/persons/search?keyword=ali&page=0&size=10
+	 // IMPORTANT: this mapping must be declared BEFORE /{id}
+	 // otherwise Spring may try to match "search" as an ID value
+	 @GetMapping("/search")
+	 @PreAuthorize("hasRole('ADMIN')")
+	 @Operation(summary = "Search persons by name or email")
+	 public ResponseEntity<Page<PersonDTO>> searchPersons(
+	         @RequestParam String keyword,
+	         @PageableDefault(size = 10, sort = "firstName") Pageable pageable) {
+	
+	     return ResponseEntity.ok(personService.searchPersons(keyword, pageable));
+	 }
+    
+    
     // ④ GET /api/persons
     // Returns all persons — ADMIN only
     @GetMapping

@@ -1,0 +1,24 @@
+<div class="dashboard">
+  <h2>Dashboard</h2>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error-msg">{{ error }}</div>
+
+  <div class="cards" *ngIf="!loading">
+    <div class="card">
+      <div class="card-icon">👤</div>
+      <div class="card-value">{{ totalPersons }}</div>
+      <div class="card-label">Total Persons</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📚</div>
+      <div class="card-value">{{ totalCourses }}</div>
+      <div class="card-label">Total Courses</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <div class="card-value">{{ totalEnrollments }}</div>
+      <div class="card-label">Total Enrollments</div>
+    </div>
+  </div>
+</div>

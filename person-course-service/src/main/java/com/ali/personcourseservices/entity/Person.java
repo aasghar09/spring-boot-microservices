@@ -34,6 +34,9 @@ public class Person {
 
     @Column(name = "phone")
     private String phone;
+    
+    @Column(name = "keycloak_id", unique = true)
+    private String keycloakId;
 
     @OneToMany(mappedBy = "person",
                cascade = CascadeType.ALL,

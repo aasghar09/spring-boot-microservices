@@ -32,6 +32,15 @@ public class PersonService {
        return personRepository.findAll(pageable)
            .map(this::convertToDTO);
    }
+   
+	// Search persons by keyword across firstName, lastName, email
+	// Returns Page<PersonDTO> — same shape as getAllPersons() 
+	// so frontend needs zero changes to handle the response
+	@Transactional(readOnly = true)
+	public Page<PersonDTO> searchPersons(String keyword, Pageable pageable) {
+	    return personRepository.searchPersons(keyword, pageable)
+	                           .map(this::convertToDTO);
+	}
 
     @Transactional(readOnly = true)
     public PersonDTO getPersonById(Long id) {
