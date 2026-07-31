@@ -24,6 +24,15 @@ public class CourseService {
         return courseRepository.findAll(pageable)
             .map(this::convertToDTO);
     }
+    
+	 // Search courses by keyword across courseName, instructorName
+	 // Returns Page<CourseDTO> — same shape as getAllCourses()
+	 // so frontend needs zero changes to handle the response
+	 @Transactional(readOnly = true)
+	 public Page<CourseDTO> searchCourses(String keyword, Pageable pageable) {
+	     return courseRepository.searchCourses(keyword, pageable)
+	                            .map(this::convertToDTO);
+	 }
 
     @Transactional(readOnly = true)
     public CourseDTO getCourseById(Long id) {

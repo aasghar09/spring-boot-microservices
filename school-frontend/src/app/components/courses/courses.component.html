@@ -1,0 +1,170 @@
+<div class="page-container">
+
+  <!-- ── PAGE HEADER ── -->
+  <div class="page-header">
+    <h2>Courses</h2>
+
+    <!-- Add Course button — visible to ADMIN only -->
+    <button
+      *ngIf="isAdmin()"
+      (click)="toggleCreateForm()"
+      class="btn-primary">
+      {{ showCreateForm ? '✕ Cancel' : '+ Add Course' }}
+    </button>
+  </div>
+
+  <!-- ── SEARCH BAR ── -->
+  <div class="search-bar">
+
+    <input
+      type="text"
+      [(ngModel)]="searchKeyword"
+      placeholder="Search by course name or instructor..."
+      class="search-input"
+      (keyup.enter)="searchCourses()" />
+
+    <button (click)="searchCourses()" class="btn-primary">
+      🔍 Search
+    </button>
+
+    <button
+      *ngIf="isSearchMode"
+      (click)="clearSearch()"
+      class="btn-secondary">
+      ✕ Clear
+    </button>
+
+  </div>
+
+  <div class="search-indicator" *ngIf="isSearchMode">
+    Showing results for: <strong>{{ searchKeyword }}</strong>
+    &nbsp;({{ totalElements }} found)
+  </div>
+
+  <!-- ── CREATE COURSE FORM — ADMIN only ── -->
+  <div class="create-form" *ngIf="isAdmin() && showCreateForm">
+    <h3>New Course</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Course Name *</label>
+        <input type="text" [(ngModel)]="newCourse.courseName" placeholder="Course Name" />
+      </div>
+      <div class="form-group">
+        <label>Instructor Name *</label>
+        <input type="text" [(ngModel)]="newCourse.instructorName" placeholder="Instructor Name" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Description *</label>
+        <input type="text" [(ngModel)]="newCourse.description" placeholder="Description" />
+      </div>
+      <div class="form-group">
+        <label>Credits *</label>
+        <input type="number" min="1" [(ngModel)]="newCourse.credits" placeholder="Credits" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button (click)="toggleCreateForm()" class="btn-secondary">Cancel</button>
+      <button (click)="createCourse()"     class="btn-primary">Save Course</button>
+    </div>
+  </div>
+
+  <!-- ── EDIT COURSE FORM — ADMIN only ── -->
+  <div class="edit-form" *ngIf="isAdmin() && showEditForm">
+    <h3>Edit Course</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Course Name *</label>
+        <input type="text" [(ngModel)]="editCourse.courseName" placeholder="Course Name" />
+      </div>
+      <div class="form-group">
+        <label>Instructor Name *</label>
+        <input type="text" [(ngModel)]="editCourse.instructorName" placeholder="Instructor Name" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Description *</label>
+        <input type="text" [(ngModel)]="editCourse.description" placeholder="Description" />
+      </div>
+      <div class="form-group">
+        <label>Credits *</label>
+        <input type="number" min="1" [(ngModel)]="editCourse.credits" placeholder="Credits" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button (click)="closeEditForm()" class="btn-secondary">Cancel</button>
+      <button (click)="updateCourse()"  class="btn-primary">Update Course</button>
+    </div>
+  </div>
+
+  <!-- ── SUCCESS / ERROR MESSAGES ── -->
+  <div class="alert-success" *ngIf="successMessage">
+    ✅ {{ successMessage }}
+  </div>
+  <div class="alert-error" *ngIf="error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- ── COURSES TABLE ── -->
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Course Name</th>
+        <th>Description</th>
+        <th>Credits</th>
+        <th>Instructor</th>
+        <th *ngIf="isAdmin()">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr *ngIf="loading">
+        <td colspan="6" class="loading-cell">Loading courses...</td>
+      </tr>
+
+      <tr *ngIf="!loading && courses.length === 0">
+        <td colspan="6" class="empty-cell">
+          {{ isSearchMode ? 'No courses found matching your search.' : 'No courses found.' }}
+        </td>
+      </tr>
+
+      <tr *ngFor="let course of courses">
+        <td>{{ course.id }}</td>
+        <td>{{ course.courseName }}</td>
+        <td>{{ course.description }}</td>
+        <td>{{ course.credits }}</td>
+        <td>{{ course.instructorName }}</td>
+
+        <td *ngIf="isAdmin()">
+          <div class="action-buttons">
+            <button (click)="openEditForm(course)" class="btn-edit">✏️ Edit</button>
+            <button (click)="deleteCourse(course.id)" class="btn-danger">🗑️ Delete</button>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- ── PAGINATION ── -->
+  <div class="pagination" *ngIf="!loading && totalPages > 1">
+    <button (click)="prevPage()" [disabled]="currentPage === 0" class="btn-secondary">◄ Prev</button>
+    <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages - 1" class="btn-secondary">Next ►</button>
+  </div>
+
+  <!-- ── RECORD COUNT ── -->
+  <div class="record-count" *ngIf="!loading && totalElements > 0">
+    Showing {{ courses.length }} of {{ totalElements }} courses
+  </div>
+
+</div>

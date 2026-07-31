@@ -54,4 +54,35 @@ export class ApiService {
       `${this.baseUrl}/api/persons/search?keyword=${keyword}&page=${page}&size=${size}&sort=firstName,asc`
     );
   }
+  
+  // ── Courses — CRUD ────────────────────────────────────────
+    getCourses(page: number, size: number): Observable<any> {
+      return this.http.get<any>(
+        `${this.baseUrl}/api/courses?page=${page}&size=${size}&sort=courseName,asc`
+      );
+    }
+
+    getCourseById(id: number): Observable<any> {
+      return this.http.get<any>(`${this.baseUrl}/api/courses/${id}`);
+    }
+
+    createCourse(course: any): Observable<any> {
+      return this.http.post<any>(`${this.baseUrl}/api/courses`, course);
+    }
+
+    updateCourse(id: number, course: any): Observable<any> {
+      return this.http.put<any>(`${this.baseUrl}/api/courses/${id}`, course);
+    }
+
+    deleteCourse(id: number): Observable<any> {
+      return this.http.delete<any>(`${this.baseUrl}/api/courses/${id}`);
+    }
+
+    // ── Courses — Search ──────────────────────────────────────
+    // keyword searches across courseName, instructorName simultaneously
+    searchCourses(keyword: string, page: number, size: number): Observable<any> {
+      return this.http.get<any>(
+        `${this.baseUrl}/api/courses/search?keyword=${keyword}&page=${page}&size=${size}&sort=courseName,asc`
+      );
+    }
 }
