@@ -1,7 +1,12 @@
 package com.ali.personcourseservices.repository;
 
 import com.ali.personcourseservices.entity.Course;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,4 +24,9 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     // ③ Check if course name already exists
     boolean existsByCourseName(String courseName);
+    
+    @Query("SELECT c FROM Course c WHERE " +
+    	       "LOWER(c.courseName)     LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+    	       "LOWER(c.instructorName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Course> searchCourses(@Param("keyword") String keyword, Pageable pageable);
 }

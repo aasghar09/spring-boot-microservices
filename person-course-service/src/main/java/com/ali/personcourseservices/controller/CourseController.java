@@ -46,16 +46,17 @@ public class CourseController {
         return ResponseEntity.ok(course);
     }
 
-    @Operation(summary = "Search courses by name", description = "Returns courses matching the name keyword. Requires ADMIN or USER role.")
-    // GET /api/courses/search?name=java
-    // ① @RequestParam — reads from query string ?name=xxx
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<List<CourseDTO>> searchCourses(
-            @RequestParam String name) {
-        List<CourseDTO> courses = courseService.searchCoursesByName(name);
-        return ResponseEntity.ok(courses);
-    }
+    @Operation(summary = "Search courses by name or instructor", description = "Returns a paginated list of courses matching the keyword in courseName or instructorName. Requires ADMIN or USER role.")
+	 // GET /api/courses/search?keyword=java&page=0&size=10
+	 // IMPORTANT: this mapping must be declared BEFORE /{id}
+	 @GetMapping("/search")
+	 @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+	 public ResponseEntity<Page<CourseDTO>> searchCourses(
+	         @RequestParam String keyword,
+	         @PageableDefault(size = 10, sort = "courseName") Pageable pageable) {
+	
+	     return ResponseEntity.ok(courseService.searchCourses(keyword, pageable));
+	 }
 
     @Operation(summary = "Get courses by instructor", description = "Returns all courses taught by a specific instructor. Requires ADMIN or USER role.")
     // GET /api/courses/instructor/{instructorName}

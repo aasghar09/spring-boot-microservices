@@ -7,6 +7,7 @@ import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { PersonsComponent } from './components/persons/persons.component';
 import { FormsModule } from '@angular/forms';
+import { CoursesComponent } from './components/courses/courses.component';
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
@@ -26,7 +27,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
 }
 
 @NgModule({
-  declarations: [AppComponent, DashboardComponent, PersonsComponent],
+  declarations: [AppComponent, DashboardComponent, PersonsComponent, CoursesComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
