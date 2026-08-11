@@ -1,5 +1,6 @@
 # ============================================================
 # FILE LOCATION: .github/workflows/ci-cd.yml
+# LAST VERIFIED: Pipeline2 Integration Completes
 # PURPOSE: Build → Test → Dockerize → Push to GHCR → Notify
 # TRIGGER: Only on Pull Request targeting 'main' branch
 # AUTHOR: Generated for aasghar09/spring-boot-microservices
