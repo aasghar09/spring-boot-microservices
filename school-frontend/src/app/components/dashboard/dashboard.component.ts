@@ -24,17 +24,17 @@ export class DashboardComponent implements OnInit {
     this.loading = true;
 
     this.apiService.getPersonsCount().subscribe({
-      next: (data) => { this.totalPersons = data.totalElements || 0; },
+      next: (data) => { this.totalPersons = data?.totalElements ?? 0; },
       error: (err) => { this.error = 'Failed to load data. Is the backend running?'; console.error(err); }
     });
 
     this.apiService.getCoursesCount().subscribe({
-      next: (data) => { this.totalCourses = data.totalElements || 0; },
+      next: (data) => { this.totalCourses = data?.totalElements ?? 0; },
       error: (err) => { console.error(err); }
     });
 
     this.apiService.getEnrollmentsCount().subscribe({
-      next: (data) => { this.totalEnrollments = data.totalElements || 0; this.loading = false; },
+      next: (data) => { this.totalEnrollments = data?.totalElements ?? 0; this.loading = false; },
       error: (err) => { console.error(err); this.loading = false; }
     });
   }
